@@ -60,3 +60,13 @@ print(confusion_matrix(all_labels, all_preds))
 
 print("\nClassification Report:")
 print(classification_report(all_labels, all_preds, target_names=test_dataset.classes))
+
+
+# Find the filenames of the mistakes
+for i in range(len(all_preds)):
+    if all_preds[i] != all_labels[i]:
+        full_path, _ = test_dataset.samples[i]
+        filename = os.path.basename(full_path)
+        actual = test_dataset.classes[all_labels[i]]
+        pred = test_dataset.classes[all_preds[i]]
+        print(f"Mistake: {filename} is actually {actual.upper()}, but predicted as {pred.upper()}")
