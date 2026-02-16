@@ -10,6 +10,7 @@ env/
 
 # Dataset
 dataset/
+hash-db/
 
 # Model weights
 *.pth

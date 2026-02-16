@@ -7,7 +7,7 @@ import os
 
 DEVICE = torch.device("cpu")
 DATA_DIR = "dataset"
-MODEL_PATH = "models/best_model.pth"
+MODEL_PATH = "../models/best_model.pth"
 
 # -----------------------
 # Transform
