@@ -41,10 +41,10 @@ const LandingPage = () => {
         </Link>
         <div className="flex items-center gap-3">
           <Button variant="ghost" asChild>
-            <Link to="/login">Login</Link>
+            <Link to="/history">Demo</Link>
           </Button>
           <Button asChild className="glow-border">
-            <Link to="/dashboard">Get Started</Link>
+            <Link to="/login">Get Started</Link>
           </Button>
         </div>
       </nav>

@@ -1,9 +1,13 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, ImageIcon, X, Sparkles, History, LogOut, Cpu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ScanResults from "@/components/ScanResults";
+
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; 
 
 const API_BASE_URL = "http://localhost:3000";
 
@@ -47,42 +51,42 @@ const Dashboard = () => {
     [handleFile]
   );
 
-  const handleScan = async () => {
-    if (!selectedFile) return;
-    setScanState("scanning");
+const handleScan = async () => {
+  if (!selectedFile) return;
+  setScanState("scanning");
 
-    // Scroll to results area
-    setTimeout(() => {
-      resultsRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 300);
+  try {
+    const formData = new FormData();
+    // This MUST match upload.single("image") in your backend
+    formData.append("image", selectedFile); 
 
-    try {
-      const formData = new FormData();
-      formData.append("image", selectedFile);
+    const response = await fetch(`${API_BASE_URL}/api/images/scan`, {
+      method: "POST",
+      body: formData,
+      // Note: Don't set Content-Type header manually when sending FormData, 
+      // the browser does it automatically with the boundary string.
+    });
 
-      const response = await fetch(`${API_BASE_URL}/api/images/scan`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error("Scan failed");
-
-      const data = await response.json();
-      setResult(data);
-      setScanState("results");
-    } catch {
-      // Demo fallback — simulate result
-      await new Promise((r) => setTimeout(r, 3000));
-      setResult({
-        final_score: 73,
-        verdict: "Likely AI Generated",
-        breakdown: { model: 82, metadata: 65, web: 71 },
-        reasoning:
-          "The image exhibits several hallmarks of AI generation. The ResNet-18 model detected subtle artifacts in texture patterns and inconsistent lighting gradients. EXIF metadata analysis revealed missing camera-specific tags commonly found in genuine photographs. Additionally, reverse image search found no exact matches, suggesting this is a novel generation rather than a captured photograph.",
-      });
-      setScanState("results");
+    if (!response.ok) {
+      const errorMsg = await response.json();
+      throw new Error(errorMsg);
     }
-  };
+
+    const data = await response.json();
+    
+    // This takes the real data from your Node server and puts it in the UI
+    setResult(data); 
+    setScanState("results");
+    toast.success("Analysis successful!");
+  } catch (error: any) {
+    toast.error("Server Error: Make sure your backend is running on port 3000");
+    setScanState("preview");
+    console.error("DEBUG: Scan failed", error);
+    // This will tell us if it's a CORS error, a 500 error, or a Network error
+    toast.error(`Error: ${error.message}`); 
+    setScanState("preview");
+  }
+};
 
   const handleReset = () => {
     setScanState("idle");
@@ -91,26 +95,45 @@ const Dashboard = () => {
     setResult(null);
   };
 
+  // Auth Middleware
+const navigate = useNavigate();
+useEffect(() => {
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      navigate("/login");
+    }
+  };
+  checkUser();
+}, [navigate]);
+
+
   return (
     <div className="min-h-screen bg-background relative">
       <div className="absolute inset-0 grid-pattern opacity-20" />
 
       {/* Navbar */}
-      <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-4 border-b border-border/50 glass-strong">
+      <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-3 border-b border-border/50 glass-strong">
         <Link to="/" className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" />
-          <span className="text-lg font-bold font-display text-foreground">
+          <Sparkles className="w-6 h-6 text-primary" />
+          <span className="text-xl font-bold font-display text-foreground">
             Pixel
           </span>
         </Link>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" asChild className="border border-white-800">
             <Link to="/history">
               <History className="w-4 h-4 mr-1" /> History
             </Link>
           </Button>
-          <Button variant="ghost" size="icon">
-            <LogOut className="w-4 h-4" />
+          <Button variant="ghost" size="icon" className="border border-white-800"
+          onClick={async () => {
+            await supabase.auth.signOut();
+            toast.info("Logged out safely");
+            navigate("/login");
+            }}
+            >
+            <LogOut className="w-5 h-5" />
           </Button>
         </div>
       </nav>
@@ -165,7 +188,7 @@ const Dashboard = () => {
                     Drop your image here
                   </h2>
                   <p className="text-muted-foreground text-sm mb-6">
-                    or click to browse — PNG, JPG, WEBP supported
+                    or click to browse —  JPG, JPEG, PNG, WEBP supported (Upto - 5MB)
                   </p>
                   <Button variant="outline" size="sm">
                     <ImageIcon className="w-4 h-4 mr-1" /> Browse Files

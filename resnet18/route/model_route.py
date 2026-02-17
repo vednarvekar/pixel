@@ -6,6 +6,7 @@ from PIL import Image
 import io
 import uvicorn
 from typing import cast
+import os
 
 app = FastAPI()
 
@@ -15,7 +16,11 @@ DEVICE = torch.device("cpu")
 model = models.resnet18()
 model.fc = nn.Linear(model.fc.in_features, 2)
 
-MODEL_PATH = "../models/best_model.pth"
+# This gets the directory where model_route.py is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# This builds the path correctly to go up one folder then into models/
+MODEL_PATH = os.path.join(BASE_DIR, "..", "models", "best_model.pth")
 model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
 model.eval()
 
@@ -46,13 +51,20 @@ async def predict(file: UploadFile = File(...)):
         # Assuming index 0 is AI and index 1 is REAL
         ai_score = probabilities[0][0].item()
         real_score = probabilities[0][1].item()
+    print("Model loaded. Class order assumed: [ai, real]")
+
         
 
+    # return {
+    #     "ai_score": ai_score,
+    #     "real_score": real_score,
+    #     "verdict": "ai" if ai_score > real_score else "real"
+    # }
     return {
-        "ai_score": ai_score,
-        "real_score": real_score,
-        "verdict": "ai" if ai_score > real_score else "real"
-    }
+    "raw": probabilities.tolist(),
+    "ai_score": ai_score,
+    "real_score": real_score
+}
 
 if __name__ == "__main__":
     # Start the server on localhost port 8000
