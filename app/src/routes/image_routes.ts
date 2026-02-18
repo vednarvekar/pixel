@@ -69,14 +69,14 @@ router.post("/scan", upload.single("image"), async(req: Request, res:Response) =
         console.log("MODEL RAW RESPONSE:", response.data);
         
         res.json({
-  final_score: fusionResult.finalScore,
-  verdict: fusionResult.verdict,
-  breakdown: {
-    model: modelScore * 100,
-    metadata: metaScore.analysis.score * 100,
-    web: webScore * 100
-  }
-})
+          final_score: fusionResult.finalScore,
+          verdict: fusionResult.verdict,
+          breakdown: {
+            model: Math.round(modelScore),
+            metadata: Math.round(metaScore.analysis.score),
+            web: Math.round(webScore)
+          }
+        })
 
 
     } catch (error) {

@@ -8,6 +8,7 @@ import ScanResults from "@/components/ScanResults";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify"; 
+import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 
 const API_BASE_URL = "http://localhost:3000";
 
@@ -25,6 +26,13 @@ interface ScanResult {
 }
 
 const Dashboard = () => {
+  const socials = [
+    { icon: Github, href: 'https://github.com/vednarvekar', label: 'GitHub' },
+    { icon: Linkedin, href: 'https://www.linkedin.com/in/ved-narvekar/', label: 'LinkedIn' },
+    { icon: Twitter, href: 'https://x.com/VedNarvekar', label: 'Twitter' },
+    { icon: Mail, href: 'mailto:ved.v.narvekar@gmail.com', label: 'Gmail' },
+  ];
+
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -51,66 +59,59 @@ const Dashboard = () => {
     [handleFile]
   );
 
-const handleScan = async () => {
-  if (!selectedFile) return;
-  setScanState("scanning");
+  const handleScan = async () => {
+    if (!selectedFile) return;
+    setScanState("scanning");
 
-  try {
-    const formData = new FormData();
-    // This MUST match upload.single("image") in your backend
-    formData.append("image", selectedFile); 
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
 
-    const response = await fetch(`${API_BASE_URL}/api/images/scan`, {
-      method: "POST",
-      body: formData,
-      // Note: Don't set Content-Type header manually when sending FormData, 
-      // the browser does it automatically with the boundary string.
-    });
+      const response = await fetch(`${API_BASE_URL}/api/images/scan`, {
+        method: "POST",
+        body: formData,
+      });
 
-    if (!response.ok) {
-      const errorMsg = await response.json();
-      throw new Error(errorMsg);
+      if (!response.ok) {
+        const errorMsg = await response.json();
+        throw new Error(errorMsg);
+      }
+
+      const data = await response.json();
+      setResult(data);
+      setScanState("results");
+      toast.success("Analysis successful!");
+    } catch (error: any) {
+      toast.error("Server Error: Make sure backend is running on port 3000");
+      setScanState("preview");
+      console.error("DEBUG: Scan failed", error);
+      toast.error(`Error: ${error.message}`);
     }
-
-    const data = await response.json();
-    
-    // This takes the real data from your Node server and puts it in the UI
-    setResult(data); 
-    setScanState("results");
-    toast.success("Analysis successful!");
-  } catch (error: any) {
-    toast.error("Server Error: Make sure your backend is running on port 3000");
-    setScanState("preview");
-    console.error("DEBUG: Scan failed", error);
-    // This will tell us if it's a CORS error, a 500 error, or a Network error
-    toast.error(`Error: ${error.message}`); 
-    setScanState("preview");
-  }
-};
+  };
 
   const handleReset = () => {
     setScanState("idle");
     setSelectedFile(null);
     setPreviewUrl(null);
     setResult(null);
-  };
 
-  // Auth Middleware
-const navigate = useNavigate();
-useEffect(() => {
-  const checkUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/login");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
-  checkUser();
-}, [navigate]);
 
+  const navigate = useNavigate();
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) navigate("/login");
+    };
+    checkUser();
+  }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-background relative">
-      <div className="absolute inset-0 grid-pattern opacity-20" />
+    <div className="min-h-screen flex flex-col bg-background relative">
+      <div className="absolute inset-0 grid-pattern opacity-20 pointer-events-none" />
 
       {/* Navbar */}
       <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-3 border-b border-border/50 glass-strong">
@@ -121,34 +122,34 @@ useEffect(() => {
           </span>
         </Link>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild className="border border-white-800">
+          <Button variant="ghost" size="sm" asChild>
             <Link to="/history">
               <History className="w-4 h-4 mr-1" /> History
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" className="border border-white-800"
-          onClick={async () => {
-            await supabase.auth.signOut();
-            toast.info("Logged out safely");
-            navigate("/login");
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              toast.info("Logged out safely");
+              navigate("/login");
             }}
-            >
+          >
             <LogOut className="w-5 h-5" />
           </Button>
         </div>
       </nav>
 
-      <main className="relative z-10 max-w-4xl mx-auto px-6 py-12">
+      {/* Main grows properly */}
+      <main className="relative z-10 flex-1 max-w-4xl mx-auto w-full px-6 py-12">
+
         {/* Dropzone */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div
             className={`glass rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer ${
               dragActive
-                ? "border-primary bg-primary/5 scale-[1.02] glow-border"
+                ? "border-primary bg-primary/5 scale-[1.02]"
                 : "border-border/60 hover:border-primary/40"
             }`}
             onDragOver={(e) => {
@@ -157,9 +158,7 @@ useEffect(() => {
             }}
             onDragLeave={() => setDragActive(false)}
             onDrop={handleDrop}
-            onClick={() =>
-              scanState === "idle" && fileInputRef.current?.click()
-            }
+            onClick={() => scanState === "idle" && fileInputRef.current?.click()}
           >
             <input
               ref={fileInputRef}
@@ -177,42 +176,31 @@ useEffect(() => {
                 <motion.div
                   key="idle"
                   className="flex flex-col items-center justify-center py-20 px-8"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
-                    <Upload className="w-8 h-8 text-primary" />
-                  </div>
-                  <h2 className="text-xl font-semibold font-display mb-2">
+                  <Upload className="w-10 h-10 text-primary mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">
                     Drop your image here
                   </h2>
                   <p className="text-muted-foreground text-sm mb-6">
-                    or click to browse —  JPG, JPEG, PNG, WEBP supported (Upto - 5MB)
+                    or click to browse — JPG, PNG, WEBP (Max 5MB)
                   </p>
                   <Button variant="outline" size="sm">
                     <ImageIcon className="w-4 h-4 mr-1" /> Browse Files
                   </Button>
                 </motion.div>
               ) : (
-                <motion.div
-                  key="preview"
-                  className="relative p-6"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
+                <motion.div key="preview" className="relative p-6">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleReset();
                     }}
-                    className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-background/80 flex items-center justify-center hover:bg-background transition-colors"
+                    className="absolute top-4 right-4 w-8 h-8 rounded-full bg-background/80 flex items-center justify-center"
                   >
                     <X className="w-4 h-4" />
                   </button>
 
-                  <div className="relative overflow-hidden rounded-xl max-h-[400px] flex items-center justify-center bg-background/30">
+                  <div className="relative rounded-xl max-h-[400px] flex items-center justify-center bg-background/30">
                     {previewUrl && (
                       <img
                         src={previewUrl}
@@ -220,32 +208,17 @@ useEffect(() => {
                         className="max-h-[400px] object-contain"
                       />
                     )}
-                    {/* Scan line animation */}
-                    {scanState === "scanning" && (
-                      <div className="absolute inset-0">
-                        <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent animate-scan-line shadow-[0_0_15px_hsl(var(--primary)/0.6)]" />
-                      </div>
-                    )}
                   </div>
 
                   {scanState === "preview" && (
-                    <motion.div
-                      className="flex justify-center mt-6"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <Button
-                        size="lg"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleScan();
-                        }}
-                        className="glow-border"
-                      >
+                    <div className="flex justify-center mt-6">
+                      <Button size="lg" onClick={(e) => {
+                        e.stopPropagation();
+                        handleScan();
+                      }}>
                         <Cpu className="w-4 h-4 mr-2" /> Analyze Image
                       </Button>
-                    </motion.div>
+                    </div>
                   )}
                 </motion.div>
               )}
@@ -253,7 +226,7 @@ useEffect(() => {
           </div>
         </motion.div>
 
-        {/* Results area */}
+        {/* Results */}
         <div ref={resultsRef} className="mt-12">
           <AnimatePresence>
             {(scanState === "scanning" || scanState === "results") && (
@@ -267,9 +240,42 @@ useEffect(() => {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Footer now stable */}
+      <footer className="border-t border-border py-6 mt-auto">
+        <div className="max-w-4xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+          
+          <div>
+            © Ved Narvekar ·{" "}
+            <a
+              href="https://vednarvekar.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-500 hover:drop-shadow-[0_0_6px_rgba(59,130,246,0.8)] transition-all duration-300"
+            >
+              vednarvekar.com
+            </a>
+          </div>
+
+          <div className="flex gap-4">
+            {socials.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-500 hover:drop-shadow-[0_0_6px_rgba(59,130,246,0.8)] transition-all duration-300"
+              >
+                <social.icon size={20} />
+              </a>
+            ))}
+          </div>
+
+          <div>Built with ❤️ & ☕</div>
+        </div>
+      </footer>
     </div>
   );
 };
-
 
 export default Dashboard;

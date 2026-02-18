@@ -1,5 +1,5 @@
 export async function analyzeImageMetadata(tags: any){
-    let score = 0.0;
+    let score = 0;
     const evidence: string[] = [];
 
     const rawJson = JSON.stringify(tags).toLowerCase();
@@ -10,7 +10,7 @@ export async function analyzeImageMetadata(tags: any){
 
     if(hasC2PA && isSignatureValid) {
         return {
-            score: 1.0,
+            score: 100,
             override: true,
             evidence: ["Cryptographically verified C2PA AI provenance"]
         }
@@ -20,7 +20,7 @@ export async function analyzeImageMetadata(tags: any){
     const digitalScource = tags?.xmp?.["dgimg: DigitalSourceType"]?.description || "";
 
     if(digitalScource.includes("trainedalgorithmicmedia")) {
-        score += 0.7;
+        score += 70;
         evidence.push("IPTC DigitalSourceType = trainedAlgorithmicMedia");
     }
 
@@ -41,8 +41,8 @@ export async function analyzeImageMetadata(tags: any){
 
     const matched = softwareKeywords.filter(k => rawJson.includes(k));
     if(matched.length > 0){
-        const traceScore = Math.min(0.6, matched.length * 0.2)
-        score += traceScore;
+        // const traceScore = Math.min(60, matched.length * 20)
+        score += 20;
         evidence.push(`Software traces detected: ${matched.join(", ")}`);
     }
 
@@ -56,10 +56,10 @@ export async function analyzeImageMetadata(tags: any){
     const hardwareStrength = [hasMake, hasModel, hasISO, hasExposure, hasLens].filter(Boolean).length;
 
     if(hardwareStrength >=4){
-        score -= 0.5;
+        score -= 50;
         evidence.push("Strong physical camera metadata detected");
     } else if (hardwareStrength >= 2) {
-        score -= 0.25;
+        score -= 25;
         evidence.push("Partial camera metadata detected");
     }
 
@@ -69,22 +69,22 @@ export async function analyzeImageMetadata(tags: any){
     const hasIptc = !!tags?.iptc;
 
     if(!hasExif && !hasXmp && !hasIptc){
-        score += 0.2
+        score += 30
         evidence.push("Metadata appears stripped");
     }
 
     // 6. Total scoring
-    score = Math.max(0, Math.min(1, score));
+    score = Math.max(0, Math.min(100, score));
 
     return{
         score,
         override: false,
         evidence,
-        confidence: 
-            score > 0.85
-                ? "High"
-                : score > 0.5
-                ? "Medium"
-                : "Low"
+        // confidence: 
+        //     score > 85
+        //         ? "High"
+        //         : score > 50
+        //         ? "Medium"
+        //         : "Low"
     };
 }

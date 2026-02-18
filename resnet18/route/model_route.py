@@ -49,22 +49,23 @@ async def predict(file: UploadFile = File(...)):
         probabilities = torch.nn.functional.softmax(outputs, dim=1)
         
         # Assuming index 0 is AI and index 1 is REAL
-        ai_score = probabilities[0][0].item()
-        real_score = probabilities[0][1].item()
+        ai_score = probabilities[0][0].item() * 100
+        real_score = probabilities[0][1].item() * 100
     print("Model loaded. Class order assumed: [ai, real]")
-
+    print("DEBUG SCALE TEST:", probabilities[0][0].item() * 100)
+    print("Loading model from:", MODEL_PATH)
         
 
-    # return {
-    #     "ai_score": ai_score,
-    #     "real_score": real_score,
-    #     "verdict": "ai" if ai_score > real_score else "real"
-    # }
     return {
-    "raw": probabilities.tolist(),
-    "ai_score": ai_score,
-    "real_score": real_score
-}
+        "ai_score": ai_score,
+        "real_score": real_score,
+        "verdict": "ai" if ai_score > real_score else "real"
+    }
+    # return {
+    # "raw": probabilities.tolist(),
+    # "ai_score": ai_score,
+    # "real_score": real_score
+    # }
 
 if __name__ == "__main__":
     # Start the server on localhost port 8000

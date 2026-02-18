@@ -97,7 +97,7 @@ const ScanResults = ({ isScanning, result, imageUrl, onScanAgain }: ScanResultsP
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          Confidence: {result.final_score}%
+          {/* Confidence: {result.final_score}% */}
         </motion.p>
       </div>
 
