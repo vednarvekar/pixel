@@ -13,8 +13,8 @@ dataset/
 hash-db/
 
 # Model weights
-*.pth
-*.pt
+# *.pth
+# *.pt
 
 # VS Code
 .vscode/
