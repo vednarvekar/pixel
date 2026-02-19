@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
     allowedHosts: [
-      "frontend-dc9u.onrender.com"
+      "https://pixel-gray-pi.vercel.app/"
     ]
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
