@@ -11,9 +11,9 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
-    allowedHosts: [
-      "https://pixel-gray-pi.vercel.app/"
-    ]
+    // allowedHosts: [
+    //   "https://pixel-gray-pi.vercel.app/"
+    // ]
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
