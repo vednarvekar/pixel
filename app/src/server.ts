@@ -9,7 +9,7 @@ import { preloadHashes } from "./service/visualSearch.service.js"
 import { startEmbeddedPythonModel, stopEmbeddedPythonModel } from "./service/pythonModel.service.js";
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors({
     origin: "*",
