@@ -8,7 +8,6 @@ import imageRoutes from "./routes/image_routes.js"
 import { preloadHashes } from "./service/visualSearch.service.js"
 import { startEmbeddedPythonModel, stopEmbeddedPythonModel } from "./service/pythonModel.service.js";
 
-
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -43,24 +42,24 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
-const serverStart = async() => {
-    console.log("Server is starting.....")
+console.log("Server is starting.....");
 
-    app.listen(PORT, () => {
-        console.log(`🚀 TS Backend listening on port ${PORT}`);
-    });
+app.listen(PORT, () => {
+    console.log(`🚀 TS Backend listening on port ${PORT}`);
 
-    // Start heavy dependencies after binding port so platforms like Render can detect service health.
-    try {
-        await startEmbeddedPythonModel();
-        console.log("Python model process is ready.");
+    // Load heavy dependencies AFTER server is reachable
+    (async () => {
+        try {
+            await startEmbeddedPythonModel();
+            console.log("Python model process is ready.");
 
-        await preloadHashes();
-        console.log("Hashes preloaded! System is ready🔥.");
-    } catch (error) {
-        console.error("Startup dependency initialization failed:", error);
-    }
-}
+            await preloadHashes();
+            console.log("Hashes preloaded! System is ready🔥.");
+        } catch (error) {
+            console.error("Startup dependency initialization failed:", error);
+        }
+    })();
+});
 
 process.on("SIGINT", () => {
   stopEmbeddedPythonModel();
@@ -71,5 +70,3 @@ process.on("SIGTERM", () => {
   stopEmbeddedPythonModel();
   process.exit(0);
 });
-
-serverStart();
