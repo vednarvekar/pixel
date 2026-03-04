@@ -12,11 +12,9 @@ let pythonProcess: ChildProcessByStdio<null, Readable, Readable> | null = null;
 let modelReadyPromise: Promise<void> | null = null;
 
 function resolveModelScriptPath(): string | null {
-  const modelPath = path.join(
+   const modelPath = path.resolve(
     process.cwd(),
-    "resnet18",
-    "route",
-    "model_route.py"
+    "../resnet18/route/model_route.py"
   );
 
   if (fs.existsSync(modelPath)) return modelPath;
