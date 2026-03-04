@@ -3,9 +3,9 @@ nixPkgs = ["nodejs_22", "python311"]
 
 [phases.install]
 cmds = [
-  "npm install",
+  "npm ci",
   "pip install -r requirements.txt"
 ]
 
 [start]
-cmd = "npm run dev"
+cmd = "npm run start"
