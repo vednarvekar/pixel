@@ -1,9 +1,9 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm ci && (python3 -m pip install -r requirements.txt || pip3 install -r requirements.txt)"
+buildCommand = "npm ci && virtualenv -p python3 .venv && .venv/bin/pip install -r requirements.txt"
 
 [deploy]
-startCommand = "npm run start"
+startCommand = "PYTHON_BIN=.venv/bin/python npm run start"
 healthcheckPath = "/api/images/health"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10

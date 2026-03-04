@@ -1,11 +1,12 @@
 [phases.setup]
-nixPkgs = ["nodejs_22", "python311", "python311Packages.pip"]
+nixPkgs = ["nodejs_22", "python311", "python311Packages.virtualenv"]
 
 [phases.install]
 cmds = [
   "npm ci",
-  "python3 -m pip install -r requirements.txt || pip3 install -r requirements.txt"
+  "virtualenv -p python3 .venv",
+  ".venv/bin/pip install -r requirements.txt"
 ]
 
 [start]
-cmd = "npm run start"
+cmd = "PYTHON_BIN=.venv/bin/python npm run start"
