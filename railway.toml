@@ -1,6 +1,6 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "cd app && npm ci && python3 -m pip install -r requirements.txt"
+buildCommand = "cd app && npm ci && (python3 -m pip install -r requirements.txt || pip3 install -r requirements.txt)"
 
 [deploy]
 startCommand = "cd app && npm run start"
