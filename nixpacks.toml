@@ -1,10 +1,10 @@
 [phases.setup]
-nixPkgs = ["nodejs_22", "python311"]
+nixPkgs = ["nodejs_22", "python311Full"]
 
 [phases.install]
 cmds = [
   "cd app && npm ci",
-  "cd app && pip install -r requirements.txt"
+  "cd app && python3 -m pip install -r requirements.txt"
 ]
 
 [start]
