@@ -10,7 +10,7 @@ import { startEmbeddedPythonModel, stopEmbeddedPythonModel } from "./service/pyt
 
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(cors({
     origin: "*",
@@ -19,6 +19,11 @@ app.use(cors({
     credentials: true
 }))
 app.use(express.json());
+
+app.get("/health", (_req: Request, res: Response) => {
+  res.status(200).json("OK");
+});
+
 app.use("/api/images", imageRoutes);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
