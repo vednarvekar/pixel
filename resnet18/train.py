@@ -32,7 +32,7 @@ patience_counter = 0
 print(f"Using device: {DEVICE}")
 
 # -----------------------
-# Stronger Augmentation
+# Stronger Data Augmentation
 # -----------------------
 train_transform = transforms.Compose([
     transforms.RandomResizedCrop(224, scale=(0.8, 1.0)),   # prevents size memorization

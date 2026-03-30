@@ -1,0 +1,25 @@
+
+services:
+  db:
+    image: postgres:16
+    container_name: pixel_postgres
+    restart: always
+    shm_size: 128mb
+    environment: 
+      POSTGRES_USER: ved
+      POSTGRES_PASSWORD: vedvnn
+      POSTGRES_DB: pixel_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      
+  adminer:
+    image: adminer
+    container_name: pixel_adminer
+    restart: always
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:

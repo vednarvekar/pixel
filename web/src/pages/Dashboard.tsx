@@ -10,8 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify"; 
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-// const API_BASE_URL =  "http://localhost:3000";
+const API_BASE_URL = "http://localhost:3000";
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
 
@@ -105,7 +104,7 @@ const Dashboard = () => {
       if (msg.includes("under 5mb") || msg.includes("file too large")) {
         toast.error("Image must be under 5MB");
       } else if (msg.includes("failed to fetch")) {
-        toast.error(`Server Error: Cannot reach API at ${API_BASE_URL}`);
+        toast.error("Server Error: Cannot reach API.");
       } else {
         toast.error(`Error: ${error.message || "System failure"}`);
       }

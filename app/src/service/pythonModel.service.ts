@@ -15,8 +15,9 @@ function resolveModelScriptPath(): string | null {
   const cwd = process.cwd();
 
   const candidates = [
-    path.join(cwd, "resnet18", "route", "model_route.py"),
-    path.join(cwd, "./resnet18/route/model_route.py"),
+    path.resolve(cwd, "resnet18/route/model_route.py"),
+    path.resolve(cwd, "../resnet18/route/model_route.py"),
+    path.resolve(cwd, "../../resnet18/route/model_route.py"),
   ];
 
   for (const candidate of candidates) {

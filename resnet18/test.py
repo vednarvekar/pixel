@@ -5,9 +5,14 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import confusion_matrix, classification_report
 import os
 
+# -----------------------
+# Paths
+# -----------------------
+BASE_DIR = os.path.dirname(__file__)
+DATA_DIR = os.path.join(BASE_DIR, "dataset")
+MODEL_PATH = os.path.join(BASE_DIR, "models", "best_model.pth")
+
 DEVICE = torch.device("cpu")
-DATA_DIR = "dataset"
-MODEL_PATH = "../models/best_model.pth"
 
 # -----------------------
 # Transform
@@ -30,6 +35,7 @@ test_loader = DataLoader(test_dataset, batch_size=16)
 # -----------------------
 model = models.resnet18(weights=None)
 model.fc = nn.Linear(model.fc.in_features, 2)
+
 model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
 model = model.to(DEVICE)
 model.eval()
@@ -44,6 +50,7 @@ correct = 0
 with torch.no_grad():
     for images, labels in test_loader:
         images, labels = images.to(DEVICE), labels.to(DEVICE)
+
         outputs = model(images)
         _, predicted = torch.max(outputs, 1)
 
@@ -61,12 +68,14 @@ print(confusion_matrix(all_labels, all_preds))
 print("\nClassification Report:")
 print(classification_report(all_labels, all_preds, target_names=test_dataset.classes))
 
-
-# Find the filenames of the mistakes
+# -----------------------
+# Show Mistakes
+# -----------------------
 for i in range(len(all_preds)):
     if all_preds[i] != all_labels[i]:
         full_path, _ = test_dataset.samples[i]
         filename = os.path.basename(full_path)
         actual = test_dataset.classes[all_labels[i]]
         pred = test_dataset.classes[all_preds[i]]
+
         print(f"Mistake: {filename} is actually {actual.upper()}, but predicted as {pred.upper()}")
