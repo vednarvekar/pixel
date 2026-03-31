@@ -1,0 +1,108 @@
+import { motion } from "framer-motion";
+      2 -import { Link } from "react-router-dom";
+      3 -import { Sparkles, History, ArrowLeft, ImageOff } from "lucide-react";
+      4 -import { Button } from "@/components/ui/button";
+      5 -
+      6 -// Demo data for now — will be replaced with Supabase queries
+      7 -const demoScans = [
+      8 -  { id: "1", date: "2026-02-15", score: 23, verdict: "Likely Real", thumbnail: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200&
+         h=200&fit=crop" },
+      9 -  { id: "2", date: "2026-02-14", score: 73, verdict: "Likely AI Generated", thumbnail: "https://images.unsplash.com/photo-1511300636408-a63a89df348
+         2?w=200&h=200&fit=crop" },
+     10 -  { id: "3", date: "2026-02-13", score: 91, verdict: "AI Generated", thumbnail: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=200
+         &h=200&fit=crop" },
+     11 -  { id: "4", date: "2026-02-12", score: 48, verdict: "Uncertain", thumbnail: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200&h=
+         200&fit=crop" },
+     12 -];
+     13 -
+     14 -function getScoreColor(score: number) {
+     15 -  if (score < 40) return "text-score-green border-score-green/30 bg-score-green/10";
+     16 -  if (score < 60) return "text-score-yellow border-score-yellow/30 bg-score-yellow/10";
+     17 -  if (score < 75) return "text-score-orange border-score-orange/30 bg-score-orange/10";
+     18 -  return "text-score-red border-score-red/30 bg-score-red/10";
+     19 -}
+     20 -
+     21 -const ScanHistory = () => {
+     22 -  const scans = demoScans; // Replace with real data later
+     23 -
+     24 -  return (
+     25 -    <div className="min-h-screen bg-background relative">
+     26 -      <div className="absolute inset-0 grid-pattern opacity-20" />
+     27 -
+     28 -      {/* Navbar */}
+     29 -      <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-4 border-b border-border/50 glass-strong">
+     30 -        <Link to="/" className="flex items-center gap-2">
+     31 -          <Sparkles className="w-5 h-5 text-primary" />
+     32 -          <span className="text-lg font-bold font-display text-foreground">Pixel</span>
+     33 -        </Link>
+     34 -        <div className="flex items-center gap-2">
+     35 -          <Button variant="ghost" size="sm" asChild>
+     36 -            <Link to="/">
+     37 -              <ArrowLeft className="w-4 h-4 mr-1" /> Home
+     38 -            </Link>
+     39 -          </Button>
+     40 -        </div>
+     41 -      </nav>
+     42 -
+     43 -      <main className="relative z-10 max-w-5xl mx-auto px-6 py-12">
+     44 -        <motion.div
+     45 -          initial={{ opacity: 0, y: 20 }}
+     46 -          animate={{ opacity: 1, y: 0 }}
+     47 -          className="mb-10"
+     48 -        >
+     49 -          <h1 className="text-3xl font-bold font-display flex items-center gap-3">
+     50 -            <History className="w-7 h-7 text-primary" /> Scan History
+     51 -          </h1>
+     52 -          <p className="text-muted-foreground mt-2">Your past image analysis results.</p>
+     53 -        </motion.div>
+     54 -
+     55 -        {scans.length === 0 ? (
+     56 -          <motion.div
+     57 -            className="glass rounded-2xl p-16 flex flex-col items-center text-center"
+     58 -            initial={{ opacity: 0 }}
+     59 -            animate={{ opacity: 1 }}
+     60 -          >
+     61 -            <ImageOff className="w-16 h-16 text-muted-foreground/30 mb-4" />
+     62 -            <h3 className="text-lg font-semibold mb-2">No scans yet</h3>
+     63 -            <p className="text-sm text-muted-foreground mb-6">Upload your first image to get started.</p>
+     64 -            <Button asChild>
+     65 -              <Link to="/dashboard">Go to Dashboard</Link>
+     66 -            </Button>
+     67 -          </motion.div>
+     68 -        ) : (
+     69 -          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+     70 -            {scans.map((scan, i) => (
+     71 -              <motion.div
+     72 -                key={scan.id}
+     73 -                className="glass rounded-xl overflow-hidden group hover:border-primary/30 transition-all cursor-pointer"
+     74 -                initial={{ opacity: 0, y: 20 }}
+     75 -                animate={{ opacity: 1, y: 0 }}
+     76 -                transition={{ delay: i * 0.08 }}
+     77 -                whileHover={{ y: -3 }}
+     78 -              >
+     79 -                <div className="aspect-video bg-secondary/30 overflow-hidden">
+     80 -                  <img
+     81 -                    src={scan.thumbnail}
+     82 -                    alt="Scan"
+     83 -                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+     84 -                  />
+     85 -                </div>
+     86 -                <div className="p-4">
+     87 -                  <div className="flex items-center justify-between mb-2">
+     88 -                    <span className="text-xs text-muted-foreground">{scan.date}</span>
+     89 -                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${getScoreColor(scan.score)}`}>
+     90 -                      {scan.score}%
+     91 -                    </span>
+     92 -                  </div>
+     93 -                  <p className="text-sm font-medium">{scan.verdict}</p>
+     94 -                </div>
+     95 -              </motion.div>
+     96 -            ))}
+     97 -          </div>
+     98 -        )}
+     99 -      </main>
+    100 -    </div>
+    101 -  );
+    102 -};
+    103 -
+    104 -export default ScanHistory;

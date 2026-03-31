@@ -1,15 +1,18 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Sparkles, History, ArrowLeft, ImageOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-// Demo data for now — will be replaced with Supabase queries
-const demoScans = [
-  { id: "1", date: "2026-02-15", score: 23, verdict: "Likely Real", thumbnail: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200&h=200&fit=crop" },
-  { id: "2", date: "2026-02-14", score: 73, verdict: "Likely AI Generated", thumbnail: "https://images.unsplash.com/photo-1511300636408-a63a89df3482?w=200&h=200&fit=crop" },
-  { id: "3", date: "2026-02-13", score: 91, verdict: "AI Generated", thumbnail: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=200&h=200&fit=crop" },
-  { id: "4", date: "2026-02-12", score: 48, verdict: "Uncertain", thumbnail: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200&h=200&fit=crop" },
-];
+import { Button } from "@/components/ui/button";
+import { API_BASE_URL } from "@/lib/api";
+
+interface HistoryScan {
+  id: string;
+  date: string;
+  score: number;
+  verdict: string;
+  thumbnail: string;
+}
 
 function getScoreColor(score: number) {
   if (score < 40) return "text-score-green border-score-green/30 bg-score-green/10";
@@ -18,14 +21,57 @@ function getScoreColor(score: number) {
   return "text-score-red border-score-red/30 bg-score-red/10";
 }
 
+function formatScanDate(date: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(date));
+}
+
 const ScanHistory = () => {
-  const scans = demoScans; // Replace with real data later
+  const [scans, setScans] = useState<HistoryScan[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHistory = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/images/history`);
+        if (!response.ok) {
+          throw new Error("Failed to load history");
+        }
+
+        const payload = (await response.json()) as HistoryScan[];
+        if (isMounted) {
+          setScans(payload);
+        }
+      } catch (error) {
+        console.error("History fetch failed:", error);
+        if (isMounted) {
+          setScans([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadHistory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background relative">
       <div className="absolute inset-0 grid-pattern opacity-20" />
 
-      {/* Navbar */}
       <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-4 border-b border-border/50 glass-strong">
         <Link to="/" className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary" />
@@ -52,7 +98,7 @@ const ScanHistory = () => {
           <p className="text-muted-foreground mt-2">Your past image analysis results.</p>
         </motion.div>
 
-        {scans.length === 0 ? (
+        {!isLoading && scans.length === 0 ? (
           <motion.div
             className="glass rounded-2xl p-16 flex flex-col items-center text-center"
             initial={{ opacity: 0 }}
@@ -67,30 +113,43 @@ const ScanHistory = () => {
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {scans.map((scan, i) => (
+            {(isLoading ? Array.from({ length: 6 }) : scans).map((scan, i) => (
               <motion.div
-                key={scan.id}
-                className="glass rounded-xl overflow-hidden group hover:border-primary/30 transition-all cursor-pointer"
+                key={isLoading ? `skeleton-${i}` : scan.id}
+                className="glass rounded-xl overflow-hidden group hover:border-primary/30 transition-all"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.08 }}
                 whileHover={{ y: -3 }}
               >
                 <div className="aspect-video bg-secondary/30 overflow-hidden">
-                  <img
-                    src={scan.thumbnail}
-                    alt="Scan"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                  {isLoading ? (
+                    <div className="w-full h-full animate-pulse bg-secondary/50" />
+                  ) : (
+                    <img
+                      src={scan.thumbnail}
+                      alt={scan.verdict}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  )}
                 </div>
                 <div className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-muted-foreground">{scan.date}</span>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${getScoreColor(scan.score)}`}>
-                      {scan.score}%
-                    </span>
-                  </div>
-                  <p className="text-sm font-medium">{scan.verdict}</p>
+                  {isLoading ? (
+                    <>
+                      <div className="h-4 w-32 rounded bg-secondary/50 animate-pulse mb-3" />
+                      <div className="h-4 w-24 rounded bg-secondary/50 animate-pulse" />
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-2 gap-3">
+                        <span className="text-xs text-muted-foreground">{formatScanDate(scan.date)}</span>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${getScoreColor(scan.score)}`}>
+                          {scan.score}%
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium">{scan.verdict}</p>
+                    </>
+                  )}
                 </div>
               </motion.div>
             ))}

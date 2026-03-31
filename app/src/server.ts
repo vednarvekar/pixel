@@ -1,15 +1,21 @@
 import express, { type NextFunction, type Request, type Response } from "express"
-import dotenv from "dotenv"
-dotenv.config()
 import cors from "cors";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { MulterError } from "multer";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+import dotenv from "dotenv"
+dotenv.config({ path: path.resolve(__dirname, "../.env") })
 
 import imageRoutes from "./routes/image_routes.js"
 import { preloadHashes } from "./service/visualSearch.service.js"
 import { startEmbeddedPythonModel, stopEmbeddedPythonModel } from "./service/pythonModel.service.js";
+import { ensureImagesTable } from "./service/imageHistory.service.js";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
+const uploadsDirectory = path.resolve(__dirname, "../uploads");
 
 app.use(cors({
     origin: "*",
@@ -18,6 +24,7 @@ app.use(cors({
     credentials: true
 }))
 app.use(express.json());
+app.use("/uploads", express.static(uploadsDirectory));
 
 app.get("/", (_req, res) => {
   res.status(200).send("OK");
@@ -50,10 +57,14 @@ console.log("Server is starting.....");
 
 app.listen(PORT, () => {
     console.log(`🚀 TS Backend listening on port ${PORT}`);
+    console.log(process.env.DATABASE_URL);
 
     // Load heavy dependencies AFTER server is reachable
     (async () => {
         try {
+            await ensureImagesTable();
+            console.log("Images table is ready.");
+
             await startEmbeddedPythonModel();
             console.log("Python model process is ready.");
 

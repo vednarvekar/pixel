@@ -1,6 +1,7 @@
 
 services:
   db:
+    build: .
     image: postgres:16
     container_name: pixel_postgres
     restart: always
@@ -19,7 +20,7 @@ services:
     container_name: pixel_adminer
     restart: always
     ports:
-      - "8080:8080"
+      - "8085:8080"
 
 volumes:
   postgres_data:

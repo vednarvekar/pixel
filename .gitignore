@@ -11,6 +11,7 @@ env/
 # Dataset
 dataset/
 hash-db/
+app/uploads/
 
 # Model weights
 # *.pth

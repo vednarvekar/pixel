@@ -4,13 +4,12 @@ import { Upload, ImageIcon, X, Sparkles, History, LogOut, Cpu } from "lucide-rea
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ScanResults from "@/components/ScanResults";
+import { API_BASE_URL } from "@/lib/api";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify"; 
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
-
-const API_BASE_URL = "http://localhost:3000";
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
 
