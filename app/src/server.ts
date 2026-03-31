@@ -11,11 +11,11 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") })
 import imageRoutes from "./routes/image_routes.js"
 import { preloadHashes } from "./service/visualSearch.service.js"
 import { startEmbeddedPythonModel, stopEmbeddedPythonModel } from "./service/pythonModel.service.js";
-import { ensureImagesTable } from "./service/imageHistory.service.js";
+import { ensureImagesTable, getUploadsRoot } from "./service/imageHistory.service.js";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
-const uploadsDirectory = path.resolve(__dirname, "../uploads");
+const uploadsDirectory = getUploadsRoot();
 
 app.use(cors({
     origin: "*",

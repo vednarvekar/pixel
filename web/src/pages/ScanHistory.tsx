@@ -79,8 +79,8 @@ const ScanHistory = () => {
         </Link>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/">
-              <ArrowLeft className="w-4 h-4 mr-1" /> Home
+            <Link to="/dashboard">
+              <ArrowLeft className="w-4 h-4 mr-1" /> Back to Scanning
             </Link>
           </Button>
         </div>
